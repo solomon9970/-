@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>간단 설문 플랫폼</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background: #f4f6f8;
+      color: #1f2937;
+    }
+    .container {
+      width: min(920px, 92%);
+      margin: 40px auto;
+    }
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    h1 { margin-top: 0; }
+    .subtitle {
+      color: #6b7280;
+      margin-bottom: 28px;
+    }
+    .question {
+      margin-bottom: 30px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .question:last-of-type { border-bottom: none; }
+    .question h2 {
+      font-size: 18px;
+      margin-bottom: 14px;
+    }
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+    label.option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: .2s;
+    }
+    label.option:hover {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+    input[type="radio"] { accent-color: #2563eb; }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .primary {
+      background: #2563eb;
+      color: #fff;
+    }
+    .secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+    .danger {
+      background: #ef4444;
+      color: #fff;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+    #resultSection { display: none; }
+    .chart-block {
+      margin: 26px 0 36px;
+    }
+    .chart-title {
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .bar-row {
+      display: grid;
+      grid-template-columns: 130px 1fr 50px;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .bar-label {
+      font-size: 14px;
+      color: #374151;
+    }
+    .bar-track {
+      width: 100%;
+      height: 26px;
+      background: #e5e7eb;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #60a5fa, #2563eb);
+      border-radius: 999px;
+      transition: width .4s ease;
+      min-width: 0;
+    }
+    .bar-value {
+      font-size: 14px;
+      text-align: right;
+      font-weight: 700;
+    }
+    .summary {
+      padding: 14px 16px;
+      background: #f9fafb;
+      border-radius: 12px;
+      color: #4b5563;
+      margin-bottom: 8px;
+    }
+    .note {
+      margin-top: 24px;
+      font-size: 13px;
+      color: #6b7280;
+      line-height: 1.6;
+    }
+    @media (max-width: 640px) {
+      .card { padding: 20px; }
+      .bar-row { grid-template-columns: 90px 1fr 42px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <section class="card" id="surveySection">
+      <h1>간단 설문</h1>
+      <p class="subtitle">아래 두 질문에 답해주세요. 제출 후 누적 결과를 그래프로 확인할 수 있습니다.</p>
+
+      <form id="surveyForm">
+        <div class="question">
+          <h2>1. 이번 콘텐츠에 얼마나 만족하시나요?</h2>
+          <div class="options">
+            <label class="option"><input type="radio" name="q1" value="매우 만족" required> 매우 만족</label>
+            <label class="option"><input type="radio" name="q1" value="만족"> 만족</label>
+            <label class="option"><input type="radio" name="q1" value="보통"> 보통</label>
+            <label class="option"><input type="radio" name="q1" value="불만족"> 불만족</label>
+          </div>
+        </div>
+
+        <div class="question">
+          <h2>2. 이 콘텐츠를 다른 사람에게 추천할 의향이 있나요?</h2>
+          <div class="options">
+            <label class="option"><input type="radio" name="q2" value="매우 그렇다" required> 매우 그렇다</label>
+            <label class="option"><input type="radio" name="q2" value="그렇다"> 그렇다</label>
+            <label class="option"><input type="radio" name="q2" value="보통이다"> 보통이다</label>
+            <label class="option"><input type="radio" name="q2" value="그렇지 않다"> 그렇지 않다</label>
+          </div>
+        </div>
+
+        <button class="primary" type="submit">응답 제출하기</button>
+      </form>
+
+      <p class="note">
+        이 버전은 정적 HTML만 사용하는 방식이라 응답 데이터는 각 사용자의 브라우저 localStorage에 저장됩니다.
+        여러 사람의 응답을 하나로 모으려면 Firebase, Supabase, Google Sheets API 같은 별도 저장소 연동이 필요합니다.
+      </p>
+    </section>
+
+    <section class="card" id="resultSection">
+      <h1>설문 결과</h1>
+      <div class="summary" id="responseCount"></div>
+
+      <div class="chart-block">
+        <div class="chart-title">질문 1 결과</div>
+        <div id="chart1"></div>
+      </div>
+
+      <div class="chart-block">
+        <div class="chart-title">질문 2 결과</div>
+        <div id="chart2"></div>
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="backBtn">다시 설문하기</button>
+        <button class="danger" id="resetBtn">저장된 결과 초기화</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "simpleSurveyResults";
+
+    const q1Options = ["매우 만족", "만족", "보통", "불만족"];
+    const q2Options = ["매우 그렇다", "그렇다", "보통이다", "그렇지 않다"];
+
+    function getResults() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) return JSON.parse(saved);
+
+      return {
+        total: 0,
+        q1: Object.fromEntries(q1Options.map(v => [v, 0])),
+        q2: Object.fromEntries(q2Options.map(v => [v, 0]))
+      };
+    }
+
+    function saveResults(results) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(results));
+    }
+
+    function renderChart(targetId, dataObj, options) {
+      const target = document.getElementById(targetId);
+      target.innerHTML = "";
+
+      const max = Math.max(...options.map(option => dataObj[option] || 0), 1);
+
+      options.forEach(option => {
+        const value = dataObj[option] || 0;
+        const percent = (value / max) * 100;
+
+        const row = document.createElement("div");
+        row.className = "bar-row";
+
+        row.innerHTML = `
+          <div class="bar-label">${option}</div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${percent}%"></div>
+          </div>
+          <div class="bar-value">${value}</div>
+        `;
+
+        target.appendChild(row);
+      });
+    }
+
+    function showResults() {
+      const results = getResults();
+
+      document.getElementById("surveySection").style.display = "none";
+      document.getElementById("resultSection").style.display = "block";
+
+      document.getElementById("responseCount").textContent =
+        `현재 이 브라우저에 저장된 누적 응답 수: ${results.total}명`;
+
+      renderChart("chart1", results.q1, q1Options);
+      renderChart("chart2", results.q2, q2Options);
+    }
+
+    document.getElementById("surveyForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+      const q1 = formData.get("q1");
+      const q2 = formData.get("q2");
+
+      const results = getResults();
+      results.total += 1;
+      results.q1[q1] = (results.q1[q1] || 0) + 1;
+      results.q2[q2] = (results.q2[q2] || 0) + 1;
+
+      saveResults(results);
+      e.target.reset();
+      showResults();
+    });
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      document.getElementById("resultSection").style.display = "none";
+      document.getElementById("surveySection").style.display = "block";
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      if (confirm("저장된 설문 결과를 모두 삭제할까요?")) {
+        localStorage.removeItem(STORAGE_KEY);
+        showResults();
+      }
+    });
+  </script>
+</body>
+</html>
